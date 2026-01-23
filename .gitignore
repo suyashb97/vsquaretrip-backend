@@ -14,3 +14,5 @@ Thumbs.db
 # Optional: build folders, if any
 dist/
 build/
+.vercel
+.env*.local
