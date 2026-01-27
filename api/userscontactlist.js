@@ -3,24 +3,46 @@ import UsersContactList from "../models/UsersContactList.js";
 import { withCors } from "../utils/withCors.js";
 
 async function handler(req, res) {
-  if (req.method !== "GET")
-    return res.status(405).json({ message: "Method not allowed" });
+  await connectDB();
 
-  try {
-    await connectDB();
-
-    const userscontactlist = await UsersContactList.find().sort({
-      createdAt: -1,
-    });
-
-    res.status(200).json({
-      message: "Users contact list fetched successfully",
-      data: userscontactlist,
-    });
-  } catch (error) {
-    console.error("Server error:", error);
-    res.status(500).json({ message: "Server error" });
+  // GET – list
+  if (req.method === "GET") {
+    const list = await UsersContactList.find().sort({ createdAt: -1 });
+    return res.status(200).json({ data: list });
   }
+
+  // POST – create
+  if (req.method === "POST") {
+    const contact = await UsersContactList.create(req.body);
+    return res.status(201).json({ data: contact });
+  }
+
+  // PUT – update
+  if (req.method === "PUT") {
+    const { id, ...updateData } = req.body;
+
+    const updated = await UsersContactList.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    return res.status(200).json({ data: updated });
+  }
+
+  // DELETE – delete
+  if (req.method === "DELETE") {
+    const { id } = req.body;
+
+    await UsersContactList.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "User contact deleted successfully",
+      id,
+    });
+  }
+
+  return res.status(405).json({ message: "Method not allowed" });
 }
 
 export default withCors(handler);
