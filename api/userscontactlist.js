@@ -1,7 +1,8 @@
 import connectDB from "../utils/connect.js";
 import UsersContactList from "../models/UsersContactList.js";
+import { withCors } from "../utils/withCors.js";
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== "GET")
     return res.status(405).json({ message: "Method not allowed" });
 
@@ -21,3 +22,5 @@ export default async function handler(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+export default withCors(handler);
