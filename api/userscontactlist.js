@@ -5,19 +5,27 @@ import { withCors } from "../utils/withCors.js";
 async function handler(req, res) {
   await connectDB();
 
-  // GET – list
+  // 🔹 GET – list OR count
   if (req.method === "GET") {
+
+    // ✅ TOTAL USERS COUNT
+    if (req.query?.type === "count") {
+      const total = await UsersContactList.countDocuments();
+      return res.status(200).json({ total });
+    }
+
+    // ✅ USERS LIST
     const list = await UsersContactList.find().sort({ createdAt: -1 });
     return res.status(200).json({ data: list });
   }
 
-  // POST – create
+  // 🔹 POST – create
   if (req.method === "POST") {
     const contact = await UsersContactList.create(req.body);
     return res.status(201).json({ data: contact });
   }
 
-  // PUT – update
+  // 🔹 PUT – update
   if (req.method === "PUT") {
     const { id, ...updateData } = req.body;
 
