@@ -5,9 +5,9 @@ const usersContactListSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true },
     mobile: { type: String, required: true },
-    travelDate: { type: Date, required: true },
-    travellers: { type: String, required: true },
-    destination: { type: String, required: true },
+    travelDate: { type: Date },
+    travellers: { type: String },
+    destination: { type: String },
     additional: { type: String },
   },
   { timestamps: true }
