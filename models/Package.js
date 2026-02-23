@@ -5,6 +5,10 @@ const itinerarySchema = new mongoose.Schema({
   title: String,
   image: String,
   details: [String],
+  note: {
+    type: String,
+    default: "",
+  },
 });
 
 const packageSchema = new mongoose.Schema(
