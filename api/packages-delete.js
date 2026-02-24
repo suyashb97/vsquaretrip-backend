@@ -82,16 +82,27 @@ import Package from "../models/Package.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 
 const allowCors = (fn) => async (req, res) => {
+
+  // ✅ CORS headers (always set first)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  // ✅ Handle preflight properly
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
   return await fn(req, res);
 };
 
 const handler = async (req, res) => {
+
+  // 🔥 EXTRA SAFETY (important for Vercel)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
   if (req.method !== "DELETE") {
     return res.status(405).json({ success: false });
   }
@@ -100,34 +111,48 @@ const handler = async (req, res) => {
     await connectDB();
 
     const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: "ID required" });
+    }
+
     const pkg = await Package.findById(id);
 
     if (!pkg) {
       return res.status(404).json({ success: false });
     }
 
-    // 🔥 Delete main image
-    await deleteFromCloudinary(pkg.image?.public_id);
+    // 🔥 Delete main image (safe)
+    try {
+      await deleteFromCloudinary(pkg.image?.public_id);
+    } catch (err) {
+      console.log("Main image delete error:", err.message);
+    }
+
     // 🔥 Delete gallery (safe delete)
     for (const img of pkg.ItenaryDetailsImages || []) {
       try {
         await deleteFromCloudinary(img.public_id);
       } catch (err) {
-        console.log("Cloudinary delete error:", err.message);
+        console.log("Gallery delete error:", err.message);
       }
     }
 
-    // 🔥 Delete itinerary images
+    // 🔥 Delete itinerary images (safe)
     for (const day of pkg.itinerary || []) {
-      await deleteFromCloudinary(day.image?.public_id);
+      try {
+        await deleteFromCloudinary(day.image?.public_id);
+      } catch (err) {
+        console.log("Itinerary delete error:", err.message);
+      }
     }
 
     await Package.findByIdAndDelete(id);
 
-    res.status(200).json({ success: true });
+    return res.status(200).json({ success: true });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
