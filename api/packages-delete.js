@@ -122,28 +122,43 @@ const handler = async (req, res) => {
       return res.status(404).json({ success: false });
     }
 
-    // 🔥 Delete main image (safe)
-    try {
-      await deleteFromCloudinary(pkg.image?.public_id);
-    } catch (err) {
-      console.log("Main image delete error:", err.message);
-    }
+    console.log("Deleting package:", pkg.name);
 
-    // 🔥 Delete gallery (safe delete)
-    for (const img of pkg.ItenaryDetailsImages || []) {
+    // 🔥 Delete main image
+    if (pkg.image?.public_id) {
       try {
-        await deleteFromCloudinary(img.public_id);
+        console.log("Deleting main image:", pkg.image.public_id);
+        await deleteFromCloudinary(pkg.image.public_id);
       } catch (err) {
-        console.log("Gallery delete error:", err.message);
+        console.log("Main image delete error:", err.message);
       }
     }
 
-    // 🔥 Delete itinerary images (safe)
-    for (const day of pkg.itinerary || []) {
-      try {
-        await deleteFromCloudinary(day.image?.public_id);
-      } catch (err) {
-        console.log("Itinerary delete error:", err.message);
+    // 🔥 Delete gallery images
+    if (pkg.ItenaryDetailsImages?.length) {
+      for (const img of pkg.ItenaryDetailsImages) {
+        if (img?.public_id) {
+          try {
+            console.log("Deleting gallery image:", img.public_id);
+            await deleteFromCloudinary(img.public_id);
+          } catch (err) {
+            console.log("Gallery delete error:", err.message);
+          }
+        }
+      }
+    }
+
+    // 🔥 Delete itinerary images
+    if (pkg.itinerary?.length) {
+      for (const day of pkg.itinerary) {
+        if (day.image?.public_id) {
+          try {
+            console.log("Deleting itinerary image:", day.image.public_id);
+            await deleteFromCloudinary(day.image.public_id);
+          } catch (err) {
+            console.log("Itinerary delete error:", err.message);
+          }
+        }
       }
     }
 
@@ -152,6 +167,7 @@ const handler = async (req, res) => {
     return res.status(200).json({ success: true });
 
   } catch (error) {
+    console.log("DELETE ERROR:", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

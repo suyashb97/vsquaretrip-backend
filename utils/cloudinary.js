@@ -7,6 +7,15 @@ cloudinary.config({
 });
 
 export const deleteFromCloudinary = async (public_id) => {
-  if (!public_id) return;
-  await cloudinary.uploader.destroy(public_id);
+  if (!public_id) {
+    console.log("No public_id provided");
+    return;
+  }
+
+  try {
+    const result = await cloudinary.uploader.destroy(public_id);
+    console.log("Cloudinary delete result:", result);
+  } catch (error) {
+    console.log("Cloudinary delete failed:", error.message);
+  }
 };
