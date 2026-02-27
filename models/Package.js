@@ -140,8 +140,8 @@ const packageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-packageSchema.pre("save", async function (next) {
-  if (!this.isModified("name")) return next();
+packageSchema.pre("save", async function () {
+  if (!this.isModified("name")) return;
 
   let baseSlug = this.name
     .toLowerCase()
@@ -157,7 +157,6 @@ packageSchema.pre("save", async function (next) {
   }
 
   this.slug = slug;
-  next();
 });
 
 export default mongoose.models.Package ||
