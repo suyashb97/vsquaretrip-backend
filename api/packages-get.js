@@ -89,53 +89,29 @@ const handler = async (req, res) => {
 
     const { slug, id } = req.query;
 
-    //
-    // 🔥 1️⃣ If slug provided → fetch by slug
-    //
     if (slug) {
       const pkg = await Package.findOne({ slug });
+      if (!pkg)
+        return res
+          .status(404)
+          .json({ success: false, message: "Package not found" });
 
-      if (!pkg) {
-        return res.status(404).json({
-          success: false,
-          message: "Package not found",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: pkg,
-      });
+      return res.status(200).json({ success: true, data: pkg });
     }
 
-    //
-    // 🔥 2️⃣ If ID provided → fetch by ID (fallback support)
-    //
     if (id) {
       const pkg = await Package.findById(id);
+      if (!pkg)
+        return res
+          .status(404)
+          .json({ success: false, message: "Package not found" });
 
-      if (!pkg) {
-        return res.status(404).json({
-          success: false,
-          message: "Package not found",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: pkg,
-      });
+      return res.status(200).json({ success: true, data: pkg });
     }
 
-    //
-    // 🔥 3️⃣ If nothing provided → return all packages
-    //
     const packages = await Package.find().sort({ createdAt: -1 });
 
-    return res.status(200).json({
-      success: true,
-      data: packages,
-    });
+    return res.status(200).json({ success: true, data: packages });
   } catch (error) {
     return res.status(500).json({
       success: false,
