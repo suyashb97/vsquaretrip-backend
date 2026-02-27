@@ -66,7 +66,7 @@
 import connectDB from "../utils/connect.js";
 import Package from "../models/Package.js";
 
-// CORS wrapper
+// ✅ CORS Wrapper
 const allowCors = (fn) => async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
@@ -78,40 +78,57 @@ const allowCors = (fn) => async (req, res) => {
 };
 
 const handler = async (req, res) => {
-  if (req.method !== "GET") {
-    return res
-      .status(405)
-      .json({ success: false, message: "Method not allowed" });
-  }
-
   try {
     await connectDB();
 
-    const { slug, id } = req.query;
+    // ✅ Only GET allowed
+    if (req.method !== "GET") {
+      return res.status(405).json({
+        success: false,
+        message: "Method not allowed",
+      });
+    }
 
+    const { slug } = req.query;
+
+    // ==========================================
+    // 🔥 GET SINGLE PACKAGE (BY SLUG OR ID)
+    // ==========================================
     if (slug) {
-      const pkg = await Package.findOne({ slug });
-      if (!pkg)
-        return res
-          .status(404)
-          .json({ success: false, message: "Package not found" });
+      let pkg = null;
 
-      return res.status(200).json({ success: true, data: pkg });
+      // ✅ If looks like Mongo ID (24 chars)
+      if (slug.length === 24) {
+        pkg = await Package.findById(slug);
+      }
+
+      // ✅ Otherwise find by slug field
+      if (!pkg) {
+        pkg = await Package.findOne({ slug });
+      }
+
+      if (!pkg) {
+        return res.status(404).json({
+          success: false,
+          message: "Package not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: pkg,
+      });
     }
 
-    if (id) {
-      const pkg = await Package.findById(id);
-      if (!pkg)
-        return res
-          .status(404)
-          .json({ success: false, message: "Package not found" });
-
-      return res.status(200).json({ success: true, data: pkg });
-    }
-
+    // ==========================================
+    // 🔥 GET ALL PACKAGES
+    // ==========================================
     const packages = await Package.find().sort({ createdAt: -1 });
 
-    return res.status(200).json({ success: true, data: packages });
+    return res.status(200).json({
+      success: true,
+      data: packages,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
