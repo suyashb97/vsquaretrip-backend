@@ -37,45 +37,53 @@
 // export default connectDB;
 
 
-
-import mongoose from "mongoose";
-
-const MONGO_URI = process.env.MONGO_URI;
-
-if (!MONGO_URI) {
-  throw new Error("Please define the MONGO_URI environment variable");
-}
-
-/*
-  Global cache to prevent multiple connections in serverless
-*/
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-const connectDB = async () => {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGO_URI).then((mongoose) => {
-      return mongoose;
-    });
-  }
-
+async function handler(req, res) {
   try {
-    cached.conn = await cached.promise;
-    console.log("MongoDB connected successfully");
+    await connectDB();
+
+    if (req.method === "GET") {
+
+      if (req.query?.type === "count") {
+        const total = await UsersContactList.countDocuments();
+        return res.status(200).json({ total });
+      }
+
+      const list = await UsersContactList.find().sort({ createdAt: -1 });
+      return res.status(200).json({ data: list });
+    }
+
+    if (req.method === "POST") {
+      const contact = await UsersContactList.create(req.body);
+      return res.status(201).json({ data: contact });
+    }
+
+    if (req.method === "PUT") {
+      const { id, ...updateData } = req.body;
+
+      const updated = await UsersContactList.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      );
+
+      return res.status(200).json({ data: updated });
+    }
+
+    if (req.method === "DELETE") {
+      const { id } = req.body;
+
+      await UsersContactList.findByIdAndDelete(id);
+
+      return res.status(200).json({
+        message: "User contact deleted successfully",
+        id,
+      });
+    }
+
+    return res.status(405).json({ message: "Method not allowed" });
+
   } catch (error) {
-    cached.promise = null;
-    console.error("MongoDB connection error:", error);
-    throw error;
+    console.error("USERS ERROR:", error);
+    return res.status(500).json({ message: error.message });
   }
-
-  return cached.conn;
-};
-
-export default connectDB;
+}
