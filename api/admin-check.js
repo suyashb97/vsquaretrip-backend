@@ -1,17 +1,8 @@
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
+import { withCors } from "../utils/withCors.js";
 
-export default async function handler(req, res) {
-  // 🔥 SIMPLE CORS
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
+async function handler(req, res) {
   try {
     if (!req.headers.cookie) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -35,3 +26,5 @@ export default async function handler(req, res) {
     return res.status(401).json({ message: "Invalid token" });
   }
 }
+
+export default withCors(handler);
