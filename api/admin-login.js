@@ -38,10 +38,31 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import connectDB from "../utils/connect.js";
-import { withCors } from "../utils/withCors.js";
 import User from "../models/User.js";
 
-async function handler(req, res) {
+export default async function handler(req, res) {
+
+  // ✅ CORS START
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://admin.vsquaretrip.com",
+  ];
+
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  // ✅ CORS END
+
   if (req.method !== "POST")
     return res.status(405).json({ message: "Method not allowed" });
 
@@ -63,14 +84,14 @@ async function handler(req, res) {
     { expiresIn: "7d" }
   );
 
-  const isProd = process.env.NODE_ENV === "production";
+  const isLocal = origin?.includes("localhost");
 
   res.setHeader(
     "Set-Cookie",
     cookie.serialize("adminToken", token, {
       httpOnly: true,
-      secure: isProd,            // localhost me false
-      sameSite: isProd ? "none" : "lax",
+      secure: !isLocal,
+      sameSite: isLocal ? "lax" : "none",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     })
@@ -78,5 +99,3 @@ async function handler(req, res) {
 
   return res.status(200).json({ message: "Login successful" });
 }
-
-export default withCors(handler);
