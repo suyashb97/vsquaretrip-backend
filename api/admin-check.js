@@ -1,8 +1,28 @@
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
-import { withCors } from "../utils/withCors.js";
 
-async function handler(req, res) {
+export default async function handler(req, res) {
+
+  // ✅ CORS DIRECTLY HERE
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://admin.vsquaretrip.com",
+  ];
+
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   try {
     if (!req.headers.cookie) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -23,8 +43,7 @@ async function handler(req, res) {
     return res.status(200).json({ message: "Authenticated" });
 
   } catch (err) {
+    console.error(err);
     return res.status(401).json({ message: "Invalid token" });
   }
 }
-
-export default withCors(handler);
