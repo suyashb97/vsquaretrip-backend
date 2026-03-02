@@ -21,8 +21,15 @@
 // };
 
 
+import cors from "cors";
 
-import { corsMiddleware } from "./corsMiddleware.js";
+const corsMiddleware = cors({
+  origin: [
+    "https://admin.vsquaretrip.com",
+    "http://localhost:5173",
+  ],
+  credentials: true,
+});
 
 function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
@@ -34,7 +41,12 @@ function runMiddleware(req, res, fn) {
 }
 
 export const withCors = (handler) => async (req, res) => {
-  await runMiddleware(req, res, corsMiddleware);
+  try {
+    await runMiddleware(req, res, corsMiddleware);
+  } catch (err) {
+    console.error("CORS ERROR:", err);
+    return res.status(500).json({ message: "CORS failed" });
+  }
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();

@@ -3,26 +3,30 @@ import { withCors } from "../utils/withCors.js";
 
 async function handler(req, res) {
   try {
-    const cookies = req.headers.cookie;
-
-    if (!cookies) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (req.method !== "GET") {
+      return res.status(405).json({ message: "Method not allowed" });
     }
 
-    const token = cookies
+    const cookieHeader = req.headers.cookie || "";
+
+    const token = cookieHeader
       .split(";")
       .find((c) => c.trim().startsWith("adminToken="))
       ?.split("=")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "No token found" });
+      return res.status(401).json({ message: "No token" });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    return res.status(200).json({ message: "Authenticated" });
-  } catch (error) {
-    console.error("CHECK AUTH ERROR:", error);
+    return res.status(200).json({
+      message: "Authenticated",
+      user: decoded,
+    });
+
+  } catch (err) {
+    console.error("CHECK AUTH ERROR:", err);
     return res.status(401).json({ message: "Invalid token" });
   }
 }

@@ -59,10 +59,9 @@ async function handler(req, res) {
 
     res.setHeader(
       "Set-Cookie",
-      `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; ${
-        process.env.NODE_ENV === "production"
-          ? "Secure; SameSite=None"
-          : "SameSite=Lax"
+      `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; ${process.env.NODE_ENV === "production"
+        ? "Secure; SameSite=None"
+        : "SameSite=Lax"
       }`
     );
 
