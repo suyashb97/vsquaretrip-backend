@@ -65,12 +65,12 @@ async function handler(req, res) {
     );
 
     const cookie = serialize("adminToken", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",   // 👈 CHANGE THIS
+  path: "/",
+  maxAge: 60 * 60 * 24 * 7,
+});
 
     res.setHeader("Set-Cookie", cookie);
 
