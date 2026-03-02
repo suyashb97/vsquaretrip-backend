@@ -9,9 +9,22 @@
 
 import cors from "cors";
 
+const allowedOrigins = [
+  "https://admin.vsquaretrip.com",
+  "http://localhost:5173",
+];
+
 export const corsMiddleware = cors({
-  origin: process.env.FRONTEND_URL, // only your admin domain
-  credentials: true, // VERY IMPORTANT
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 });

@@ -35,19 +35,12 @@
 
 
 
-import connectDB from "../utils/connect.js";
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { withCors } from "../utils/withCors.js";
-
 async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).json({ message: "Method not allowed" });
 
   try {
     await connectDB();
-
     const { email, password } = req.body;
 
     const admin = await User.findOne({ email });
@@ -64,22 +57,20 @@ async function handler(req, res) {
       { expiresIn: "7d" }
     );
 
-    // 🔐 STORE TOKEN IN HTTP ONLY COOKIE
-    res.setHeader("Set-Cookie", `
-      adminToken=${token};
-      HttpOnly;
-      Secure;
-      SameSite=None;
-      Path=/;
-      Max-Age=604800
-    `);
+    res.setHeader(
+      "Set-Cookie",
+      `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; ${
+        process.env.NODE_ENV === "production"
+          ? "Secure; SameSite=None"
+          : "SameSite=Lax"
+      }`
+    );
 
     res.status(200).json({ message: "Login successful" });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 }
 
-export default withCors(handler);admin-logout.js
+export default withCors(handler);
