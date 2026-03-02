@@ -34,22 +34,43 @@
 // export default withCors(handler);
 
 
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import connectDB from "./utils/connectDB.js";
+import User from "../models/User.js";
 
-async function handler(req, res) {
-  if (req.method !== "POST")
+export const config = { runtime: "nodejs" };
+
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
+  }
 
   try {
     await connectDB();
+
     const { email, password } = req.body;
 
     const admin = await User.findOne({ email });
-    if (!admin || admin.role !== "admin")
+
+    if (!admin || admin.role !== "admin") {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch)
+
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
       { id: admin._id, role: admin.role },
@@ -58,15 +79,14 @@ async function handler(req, res) {
     );
 
     res.setHeader(
-  "Set-Cookie",
-  `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; Secure; SameSite=None`
-);
+      "Set-Cookie",
+      `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; Secure; SameSite=None`
+    );
 
-    res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ message: "Login successful" });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 }
-
-export default withCors(handler);

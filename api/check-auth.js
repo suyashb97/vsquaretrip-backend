@@ -1,15 +1,18 @@
 import jwt from "jsonwebtoken";
-import connectDB from "../utils/connectDB.js";
-import { withCors } from "../utils/withCors.js";
 
-async function handler(req, res) {
+export const config = { runtime: "nodejs" };
+
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   try {
-    await connectDB(); // ADD THIS
-
-    if (req.method !== "GET") {
-      return res.status(405).json({ message: "Method not allowed" });
-    }
-
     const cookieHeader = req.headers.cookie || "";
 
     const token = cookieHeader
@@ -29,9 +32,6 @@ async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error("CHECK AUTH ERROR:", err);
     return res.status(401).json({ message: "Invalid token" });
   }
 }
-
-export default withCors(handler);
