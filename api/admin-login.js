@@ -58,12 +58,9 @@ async function handler(req, res) {
     );
 
     res.setHeader(
-      "Set-Cookie",
-      `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; ${process.env.NODE_ENV === "production"
-        ? "Secure; SameSite=None"
-        : "SameSite=Lax"
-      }`
-    );
+  "Set-Cookie",
+  `adminToken=${token}; HttpOnly; Path=/; Max-Age=604800; Secure; SameSite=None`
+);
 
     res.status(200).json({ message: "Login successful" });
   } catch (err) {

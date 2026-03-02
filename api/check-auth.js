@@ -1,8 +1,11 @@
 import jwt from "jsonwebtoken";
+import connectDB from "../utils/connectDB.js";
 import { withCors } from "../utils/withCors.js";
 
 async function handler(req, res) {
   try {
+    await connectDB(); // ADD THIS
+
     if (req.method !== "GET") {
       return res.status(405).json({ message: "Method not allowed" });
     }
