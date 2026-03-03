@@ -21,35 +21,52 @@
 // };
 
 
-export function withCors(handler) {
-  return async (req, res) => {
+import connectDB from "../utils/connect.js";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { withCors } from "../utils/withCors.js";
 
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      process.env.FRONTEND_URL_LOCAL,
-    ];
+async function handler(req, res) {
 
-    const origin = req.headers.origin;
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
 
-    if (allowedOrigins.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
+  try {
+    await connectDB();
+
+    const { email, password } = req.body;
+
+    const admin = await User.findOne({ email });
+
+    if (!admin || admin.role !== "admin") {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,DELETE,OPTIONS"
-    );
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
+    const isMatch = await bcrypt.compare(password, admin.password);
 
-    if (req.method === "OPTIONS") {
-      return res.status(200).end();
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    return handler(req, res);
-  };
+    const token = jwt.sign(
+      { id: admin._id, role: admin.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.setHeader(
+      "Set-Cookie",
+      `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=None; Secure`
+    );
+
+    return res.status(200).json({ message: "Login successful" });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
 }
+
+export default withCors(handler);
