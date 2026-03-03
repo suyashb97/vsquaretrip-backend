@@ -22,58 +22,51 @@
 
 
 import connectDB from "../utils/connect.js";
-import UsersContactList from "../models/UsersContactList.js";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { withCors } from "../utils/withCors.js";
 
 async function handler(req, res) {
-  await connectDB();
 
-  // 🔹 GET – list OR count
-  if (req.method === "GET") {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
 
-    // ✅ TOTAL USERS COUNT
-    if (req.query?.type === "count") {
-      const total = await UsersContactList.countDocuments();
-      return res.status(200).json({ total });
+  try {
+    await connectDB();
+
+    const { email, password } = req.body;
+
+    const admin = await User.findOne({ email });
+
+    if (!admin || admin.role !== "admin") {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // ✅ USERS LIST
-    const list = await UsersContactList.find().sort({ createdAt: -1 });
-    return res.status(200).json({ data: list });
-  }
+    const isMatch = await bcrypt.compare(password, admin.password);
 
-  // 🔹 POST – create
-  if (req.method === "POST") {
-    const contact = await UsersContactList.create(req.body);
-    return res.status(201).json({ data: contact });
-  }
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-  // 🔹 PUT – update
-  if (req.method === "PUT") {
-    const { id, ...updateData } = req.body;
-
-    const updated = await UsersContactList.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
+    const token = jwt.sign(
+      { id: admin._id, role: admin.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
     );
 
-    return res.status(200).json({ data: updated });
+    res.setHeader(
+      "Set-Cookie",
+      `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=None; Secure`
+    );
+
+    return res.status(200).json({ message: "Login successful" });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
   }
-
-  // DELETE – delete
-  if (req.method === "DELETE") {
-    const { id } = req.body;
-
-    await UsersContactList.findByIdAndDelete(id);
-
-    return res.status(200).json({
-      message: "User contact deleted successfully",
-      id,
-    });
-  }
-
-  return res.status(405).json({ message: "Method not allowed" });
 }
 
 export default withCors(handler);
