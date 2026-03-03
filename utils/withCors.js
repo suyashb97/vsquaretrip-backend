@@ -21,7 +21,6 @@
 // };
 
 
-
 export function withCors(handler) {
   return async (req, res) => {
 
@@ -32,11 +31,11 @@ export function withCors(handler) {
 
     const origin = req.headers.origin;
 
-    // 🔥 Set CORS headers
     if (allowedOrigins.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
     }
 
+    res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader(
       "Access-Control-Allow-Methods",
@@ -47,16 +46,10 @@ export function withCors(handler) {
       "Content-Type, Authorization"
     );
 
-    // 🔥 Handle preflight
     if (req.method === "OPTIONS") {
       return res.status(200).end();
     }
 
-    try {
-      return await handler(req, res);
-    } catch (error) {
-      console.error("API Error:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+    return handler(req, res);
   };
 }
