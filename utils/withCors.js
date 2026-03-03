@@ -23,8 +23,9 @@
 
 export const withCors = (handler) => async (req, res) => {
   const allowedOrigins = [
-    process.env.FRONTEND_URL,
-    process.env.FRONTEND_URL_LOCAL,
+    process.env.FRONTEND_URL,       // admin panel
+    process.env.FRONTEND_URL_LOCAL, // local dev
+    process.env.FRONTEND_URL_LIVE,  // live public site
   ];
 
   const origin = req.headers.origin;
