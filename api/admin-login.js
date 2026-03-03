@@ -33,24 +33,13 @@
 
 // export default withCors(handler);
 
-
-
 import connectDB from "../utils/connect.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { withCors } from "../utils/withCors.js";
 
-export default async function handler(req, res) {
-
-  // 🔥 DIRECT CORS HEADERS (NO middleware)
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+async function handler(req, res) {
 
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -79,7 +68,6 @@ export default async function handler(req, res) {
       { expiresIn: "1d" }
     );
 
-    // 🔥 Cookie
     res.setHeader(
       "Set-Cookie",
       `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=None; Secure`
@@ -88,7 +76,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: "Login successful" });
 
   } catch (err) {
-    console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 }
+
+export default withCors(handler);
