@@ -36,7 +36,21 @@ function runMiddleware(req, res, fn) {
 export const withCors = (handler) => async (req, res) => {
   await runMiddleware(req, res, corsMiddleware);
 
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.headers.origin) {
+    res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+  }
+
   if (req.method === "OPTIONS") {
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,DELETE,OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
     return res.status(200).end();
   }
 
