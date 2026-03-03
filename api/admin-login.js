@@ -72,7 +72,12 @@ async function handler(req, res) {
 
 res.setHeader(
   "Set-Cookie",
-  `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=${isProduction ? "None" : "Lax"}; ${isProduction ? "Secure;" : ""}`
+  `adminToken=${token};
+   HttpOnly;
+   Path=/;
+   Max-Age=86400;
+   SameSite=${isProduction ? "None" : "Lax"};
+   ${isProduction ? "Secure;" : ""}`
 );
 
     return res.status(200).json({ message: "Login successful" });
