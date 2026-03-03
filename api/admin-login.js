@@ -70,15 +70,10 @@ async function handler(req, res) {
 
     const isProduction = process.env.NODE_ENV === "production";
 
-    res.setHeader(
-      "Set-Cookie",
-      `adminToken=${token};
-   HttpOnly;
-   Path=/;
-   Max-Age=86400;
-   SameSite=${isProduction ? "None" : "Lax"};
-   ${isProduction ? "Secure;" : ""}`
-    );
+res.setHeader(
+  "Set-Cookie",
+  `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=${isProduction ? "None" : "Lax"}; ${isProduction ? "Secure;" : ""}`
+);
 
     return res.status(200).json({ message: "Login successful" });
 
