@@ -22,27 +22,22 @@
 
 
 
-import { corsMiddleware } from "./corsMiddleware.js";
+export function withCors(handler) {
+  return async (req, res) => {
 
-function runMiddleware(req, res, fn) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) return reject(result);
-      return resolve(result);
-    });
-  });
-}
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      process.env.FRONTEND_URL_LOCAL,
+    ];
 
-export const withCors = (handler) => async (req, res) => {
-  await runMiddleware(req, res, corsMiddleware);
+    const origin = req.headers.origin;
 
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+    // 🔥 Set CORS headers
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
 
-  if (req.headers.origin) {
-    res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-  }
-
-  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader(
       "Access-Control-Allow-Methods",
       "GET,POST,PUT,DELETE,OPTIONS"
@@ -51,8 +46,17 @@ export const withCors = (handler) => async (req, res) => {
       "Access-Control-Allow-Headers",
       "Content-Type, Authorization"
     );
-    return res.status(200).end();
-  }
 
-  return handler(req, res);
-};
+    // 🔥 Handle preflight
+    if (req.method === "OPTIONS") {
+      return res.status(200).end();
+    }
+
+    try {
+      return await handler(req, res);
+    } catch (error) {
+      console.error("API Error:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+}
