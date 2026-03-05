@@ -1,8 +1,10 @@
 // api/check-auth.js
-import { adminAuth } from "../utils/authMiddleware";
+import { adminAuth } from "../utils/adminAuth.js";
+import { withCors } from "../utils/withCors.js";
 
-const handler = async (req, res) => {
-  res.status(200).json({ success: true });
-};
+async function handler(req, res) {
+  // adminAuth ensures cookie is valid
+  res.status(200).json({ success: true, message: "Authenticated" });
+}
 
-export default adminAuth(handler);
+export default withCors(adminAuth(handler));
