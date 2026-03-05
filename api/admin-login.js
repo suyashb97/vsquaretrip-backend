@@ -81,7 +81,6 @@ export default async function handler(req, res) {
   secure: true,
   sameSite: "none",
   path: "/",
-  domain: "vsquaretrip-backend-app.vercel.app",
   maxAge: 60 * 60 * 24 * 7
 })
 
