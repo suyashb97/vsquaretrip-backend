@@ -20,16 +20,15 @@
 //   return handler(req, res);
 // };
 
-
 export const withCors = (handler) => async (req, res) => {
 
-  const allowedOrigins = [
-    process.env.FRONTEND_URL,
-    process.env.FRONTEND_URL_LOCAL,
-    process.env.FRONTEND_URL_LIVE
-  ];
-
   const origin = req.headers.origin;
+
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "https://admin.vsquaretrip.com",
+    "https://vsquaretrip.com"
+  ];
 
   if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);

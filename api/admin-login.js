@@ -72,22 +72,18 @@ export default async function handler(req, res) {
       });
     }
 
-    const token = jwt.sign(
-      { role: "admin" },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
+  expiresIn: "7d"
+});
 
-    res.setHeader(
-      "Set-Cookie",
-      cookie.serialize("admin_token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7
-      })
-    );
+   cookie.serialize("admin_token", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+  domain: "vsquaretrip-backend-app.vercel.app",
+  maxAge: 60 * 60 * 24 * 7
+})
 
     return res.status(200).json({
       message: "Login successful"
