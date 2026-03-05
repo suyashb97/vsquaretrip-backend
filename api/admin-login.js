@@ -46,16 +46,15 @@ export default async function handler(req, res) {
 
     // ✅ cookie set
     res.setHeader(
-      "Set-Cookie",
-      cookie.serialize("admin_token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7
-      })
-    );
-
+  "Set-Cookie",
+  cookie.serialize("admin_token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7
+  })
+);
     return res.status(200).json({
       message: "Login successful"
     });
