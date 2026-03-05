@@ -33,9 +33,6 @@
 
 // export default withCors(handler);
 
-import connectDB from "../utils/connect.js";
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { withCors } from "../utils/withCors.js";
 
@@ -47,24 +44,25 @@ async function handler(req, res) {
 
   try {
 
-    await connectDB();
-
     const { email, password } = req.body;
 
-    const admin = await User.findOne({ email });
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!admin || admin.role !== "admin") {
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (!adminEmail || !adminPassword) {
+      return res.status(500).json({
+        message: "Admin env variables not configured"
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (email !== adminEmail || password !== adminPassword) {
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
     }
 
     const token = jwt.sign(
-      { id: admin._id, role: admin.role },
+      { role: "admin" },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -85,9 +83,9 @@ async function handler(req, res) {
       message: "Login successful"
     });
 
-  } catch (error) {
+  } catch (err) {
 
-    console.error(error);
+    console.error(err);
 
     return res.status(500).json({
       message: "Server error"

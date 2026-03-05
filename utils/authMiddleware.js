@@ -7,7 +7,9 @@ export const verifyAdmin = (handler) => async (req, res) => {
     const cookieHeader = req.headers.cookie;
 
     if (!cookieHeader) {
-      return res.status(401).json({ message: "No token provided" });
+      return res.status(401).json({
+        message: "No token"
+      });
     }
 
     const cookies = Object.fromEntries(
@@ -17,14 +19,12 @@ export const verifyAdmin = (handler) => async (req, res) => {
     const token = cookies.adminToken;
 
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({
+        message: "Unauthorized"
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    if (decoded.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
 
     req.user = decoded;
 
@@ -33,7 +33,7 @@ export const verifyAdmin = (handler) => async (req, res) => {
   } catch (err) {
 
     return res.status(401).json({
-      message: "Invalid or expired token"
+      message: "Invalid token"
     });
 
   }
