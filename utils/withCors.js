@@ -20,19 +20,18 @@
 //   return handler(req, res);
 // };
 
-
 // utils/withCors.js
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
 export const withCors = (handler) => async (req, res) => {
-  // Apply CORS
+  // CORS
   await new Promise((resolve, reject) => {
     cors({
       origin: [
-        process.env.FRONTEND_URL,       // live frontend
-        process.env.FRONTEND_URL_LIVE,  // live website
-        "http://localhost:5173",        // local dev
+        process.env.FRONTEND_URL,
+        process.env.FRONTEND_URL_LIVE,
+        "http://localhost:5173", // local dev
       ],
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
