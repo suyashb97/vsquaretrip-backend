@@ -1,13 +1,12 @@
 import { verifyAdmin } from "../utils/authMiddleware.js";
-import { withCors } from "../utils/withCors.js";
 
-async function handler(req, res) {
+export default verifyAdmin(async function handler(req, res) {
+
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
   return res.status(200).json({
-    authenticated: true,
-    user: req.user
+    authenticated: true
   });
 
-}
-
-export default withCors(verifyAdmin(handler));
+});
