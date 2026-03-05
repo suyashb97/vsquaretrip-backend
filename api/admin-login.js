@@ -69,14 +69,16 @@ async function handler(req, res) {
       { expiresIn: "1d" }
     );
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.setHeader(
       "Set-Cookie",
       `adminToken=${token};
       HttpOnly;
       Path=/;
       Max-Age=86400;
-      SameSite=None;
-      Secure`
+      SameSite=${isProduction ? "None" : "Lax"};
+      ${isProduction ? "Secure;" : ""}`
     );
 
     return res.status(200).json({
@@ -85,11 +87,14 @@ async function handler(req, res) {
 
   } catch (error) {
 
+    console.error(error);
+
     return res.status(500).json({
       message: "Server error"
     });
 
   }
+
 }
 
 export default withCors(handler);
