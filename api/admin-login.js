@@ -61,7 +61,10 @@ async function handler(req, res) {
   const token = jwt.sign({ id: admin._id, role: admin.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
   // Set httpOnly cookie
-  res.setHeader("Set-Cookie", `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict; Secure=${process.env.NODE_ENV === "production"}`);
+  res.setHeader(
+  "Set-Cookie",
+  `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict; Secure=${process.env.NODE_ENV === "production"}`
+);
 
   return res.status(200).json({ success: true, admin: { id: admin._id, email: admin.email } });
 }
