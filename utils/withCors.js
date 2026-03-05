@@ -21,33 +21,30 @@
 // };
 
 
+// utils/withCors.js
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-export const withCors = (handler) => {
-  const corsMiddleware = cors({
-    origin: [
-      process.env.FRONTEND_URL,       // live admin
-      process.env.FRONTEND_URL_LIVE,  // live site
-      "http://localhost:5173",        // local dev
-    ],
-    credentials: true,  // allow cookies
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+export const withCors = (handler) => async (req, res) => {
+  // Apply CORS
+  await new Promise((resolve, reject) => {
+    cors({
+      origin: [
+        process.env.FRONTEND_URL,       // live frontend
+        process.env.FRONTEND_URL_LIVE,  // live website
+        "http://localhost:5173",        // local dev
+      ],
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })(req, res, (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
   });
 
-  return async (req, res) => {
-    // Apply CORS
-    await new Promise((resolve, reject) => {
-      corsMiddleware(req, res, (result) => {
-        if (result instanceof Error) return reject(result);
-        resolve(result);
-      });
-    });
+  // Parse cookies
+  cookieParser()(req, res, () => {});
 
-    // Parse cookies
-    cookieParser()(req, res, () => {});
-
-    return handler(req, res);
-  };
+  return handler(req, res);
 };
