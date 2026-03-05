@@ -22,10 +22,11 @@
 
 
 export const withCors = (handler) => async (req, res) => {
+
   const allowedOrigins = [
-    process.env.FRONTEND_URL,       // admin panel
-    process.env.FRONTEND_URL_LOCAL, // local dev
-    process.env.FRONTEND_URL_LIVE,  // live public site
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL_LOCAL,
+    process.env.FRONTEND_URL_LIVE
   ];
 
   const origin = req.headers.origin;
@@ -35,13 +36,15 @@ export const withCors = (handler) => async (req, res) => {
   }
 
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
-  );
+
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS"
   );
 
   if (req.method === "OPTIONS") {

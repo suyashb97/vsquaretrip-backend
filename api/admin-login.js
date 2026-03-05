@@ -46,6 +46,7 @@ async function handler(req, res) {
   }
 
   try {
+
     await connectDB();
 
     const { email, password } = req.body;
@@ -68,17 +69,26 @@ async function handler(req, res) {
       { expiresIn: "1d" }
     );
 
-    const isProduction = process.env.NODE_ENV === "production";
+    res.setHeader(
+      "Set-Cookie",
+      `adminToken=${token};
+      HttpOnly;
+      Path=/;
+      Max-Age=86400;
+      SameSite=None;
+      Secure`
+    );
 
-res.setHeader(
-  "Set-Cookie",
-  `adminToken=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=${isProduction ? "None" : "Lax"}; ${isProduction ? "Secure;" : ""}`
-);
+    return res.status(200).json({
+      message: "Login successful"
+    });
 
-    return res.status(200).json({ message: "Login successful" });
+  } catch (error) {
 
-  } catch (err) {
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({
+      message: "Server error"
+    });
+
   }
 }
 
