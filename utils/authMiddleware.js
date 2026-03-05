@@ -1,41 +1,36 @@
 import jwt from "jsonwebtoken";
 
-export const verifyAdmin = (handler) => async (req, res) => {
+export default function handler(req, res) {
 
   try {
 
-    const cookieHeader = req.headers.cookie;
+    const cookies = req.headers.cookie;
 
-    if (!cookieHeader) {
-      return res.status(401).json({
-        message: "No token"
-      });
+    if (!cookies) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const cookies = Object.fromEntries(
-      cookieHeader.split("; ").map(c => c.split("="))
-    );
-
-    const token = cookies.adminToken;
+    const token = cookies
+      .split(";")
+      .find(c => c.trim().startsWith("admin_token="))
+      ?.split("=")[1];
 
     if (!token) {
-      return res.status(401).json({
-        message: "Unauthorized"
-      });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = decoded;
+    return res.status(200).json({
+      authenticated: true
+    });
 
-    return handler(req, res);
-
-  } catch (err) {
+  } catch (error) {
 
     return res.status(401).json({
-      message: "Invalid token"
+      authenticated: false
     });
 
   }
 
-};
+}

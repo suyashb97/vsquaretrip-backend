@@ -34,9 +34,9 @@
 // export default withCors(handler);
 
 import jwt from "jsonwebtoken";
-import { withCors } from "../utils/withCors.js";
+import cookie from "cookie";
 
-async function handler(req, res) {
+export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -46,53 +46,50 @@ async function handler(req, res) {
 
     const { email, password } = req.body;
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+    const JWT_SECRET = process.env.JWT_SECRET;
 
-    if (!adminEmail || !adminPassword) {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !JWT_SECRET) {
       return res.status(500).json({
-        message: "Admin env variables not configured"
+        message: "Server configuration error"
       });
     }
 
-    if (email !== adminEmail || password !== adminPassword) {
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
       return res.status(401).json({
-        message: "Invalid credentials"
+        message: "Invalid email or password"
       });
     }
 
     const token = jwt.sign(
       { role: "admin" },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      JWT_SECRET,
+      { expiresIn: "7d" }
     );
-
-    const isProduction = process.env.NODE_ENV === "production";
 
     res.setHeader(
       "Set-Cookie",
-      `adminToken=${token};
-      HttpOnly;
-      Path=/;
-      Max-Age=86400;
-      SameSite=${isProduction ? "None" : "Lax"};
-      ${isProduction ? "Secure;" : ""}`
+      cookie.serialize("admin_token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7
+      })
     );
 
     return res.status(200).json({
       message: "Login successful"
     });
 
-  } catch (err) {
+  } catch (error) {
 
-    console.error(err);
+    console.error("Admin Login Error:", error);
 
     return res.status(500).json({
       message: "Server error"
     });
 
   }
-
 }
-
-export default withCors(handler);
