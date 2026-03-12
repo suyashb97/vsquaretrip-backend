@@ -8,17 +8,16 @@
 
 
 
+import cors from "cors";
+
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Saare allowed domains ki list jo aapne env mein di hai
     const allowedOrigins = [
-      process.env.FRONTEND_URL,       // https://admin.vsquaretrip.com
-      process.env.FRONTEND_URL_LIVE,  // https://vsquaretrip.com
-      process.env.FRONTEND_URL_LOCAL  // http://localhost:5173
+      "https://admin.vsquaretrip.com",
+      "https://vsquaretrip.com",
+      "http://localhost:5173", // Local development ke liye
     ];
-
-    // Postman ya bina origin wali requests ko allow karne ke liye (!origin)
-    // Production mein development (localhost) tabhi chalega agar wo env mein hai
+    // !origin allow karta hai Postman ya non-browser requests ko
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -28,4 +27,5 @@ export const corsMiddleware = cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
+  optionsSuccessStatus: 200, // Preflight requests (OPTIONS) ke liye
 });
